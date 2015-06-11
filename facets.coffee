@@ -143,7 +143,7 @@ if Meteor.isServer
     #  if ready
     #    # Force regeneration of a facet whenever updated
     #    # See Focets.find adapter
-    #    #Facets.remove 
+    #    #Facets.remove
     #    console.log 'updating facets'
     #collection.find({}, {fields: _.mapObject(configuration, -> 1)}).observe
     #  added: refresh
