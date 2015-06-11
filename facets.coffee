@@ -170,25 +170,22 @@ if Meteor.isServer
 
     # Adapt collection.find() so that finds from within publish functions automatically
     # regenerate facets when needed.
-    unless collection._oldFind?
-      collection._oldFind = collection.find
-      collection.find = (selector) ->
-        selector = selector || {}
+    collection.findWithFacets = (selector) ->
+      selector = selector || {}
 
-        # TODO: find a way to only register this if called from within a publish function
-        if true || @connection?
-          stringify = Npm.require 'json-stable-stringify'
-          facetString = stringify selector
-          ready = false
-          Facets.upsert {collection: collection._name, facetString: facetString},
+      stringify = Npm.require 'json-stable-stringify'
+      facetString = stringify selector
+      ready = false
+      Facets.upsert {collection: collection._name, facetString: facetString},
+        $set:
+          facets: collection.computeFacets selector
+      cursor = Facets.find {collection: collection._name, facetString: facetString}
+      cursor.observe
+        removed: (doc) ->
+          Facets.upsert {collection: collection._name, facetString: doc.facetString},
             $set:
               facets: collection.computeFacets selector
-          cursor = Facets.find {collection: collection._name, facetString: facetString}
-          cursor.observe
-            removed: (doc) ->
-              Facets.upsert {collection: collection._name, facetString: doc.facetString},
-                $set:
-                  facets: collection.computeFacets selector
-          ready = true
-        return collection._oldFind.apply collection, arguments
+      ready = true
+
+      return [collection.find.apply(collection, arguments), cursor]
 
