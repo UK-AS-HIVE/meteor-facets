@@ -143,7 +143,7 @@ if Meteor.isServer
     #  if ready
     #    # Force regeneration of a facet whenever updated
     #    # See Focets.find adapter
-    #    #Facets.remove
+    #    Facets.remove {collection: collection._name, facetString:
     #    console.log 'updating facets'
     #collection.find({}, {fields: _.mapObject(configuration, -> 1)}).observe
     #  added: refresh
@@ -179,13 +179,29 @@ if Meteor.isServer
       Facets.upsert {collection: collection._name, facetString: facetString},
         $set:
           facets: collection.computeFacets selector
-      cursor = Facets.find {collection: collection._name, facetString: facetString}
+      #cursor = Facets.find {collection: collection._name, facetString: facetString}
+      cursor = collection.find.apply(collection, arguments)
+
+      refresh = (doc) ->
+        if ready
+          # Force regeneration of a facet whenever updated
+          console.log "forcing facet regeneration for #{collection._name} #{facetString} because doc #{doc._id} changed"
+          Facets.remove {collection: collection._name, facetString: facetString}
+
       cursor.observe
+        added: refresh
+        changed: (n, o) -> refresh _.union n, o
+        removed: refresh
+
+      facetCursor = Facets.find({collection: collection._name, facetString: facetString})
+      facetCursor.observe
         removed: (doc) ->
-          Facets.upsert {collection: collection._name, facetString: doc.facetString},
+          console.log "regenerating facets for #{collection._name}, #{facetString}"
+          Facets.upsert {collection: collection._name, facetString: facetString},
             $set:
               facets: collection.computeFacets selector
       ready = true
 
-      return [collection.find.apply(collection, arguments), cursor]
+
+      return [cursor, facetCursor]
 
