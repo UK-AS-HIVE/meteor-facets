@@ -1,7 +1,7 @@
 Package.describe({
   summary: "Simple facets with Mongo.",
   name: "hive:facets",
-  version: "0.0.0"
+  version: "0.0.1"
 });
 
 Npm.depends({'json-stable-stringify': '1.0.0'});
@@ -12,6 +12,7 @@ Package.onUse(function(api, where) {
     'underscore',
     'coffeescript',
     'mongo',
+    'check',
     'meteorhacks:aggregate@1.2.1'],
     ['client', 'server']);
   api.addFiles('facets.coffee', ['client', 'server']);
