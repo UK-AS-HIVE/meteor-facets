@@ -1,7 +1,7 @@
 Package.describe({
   summary: "Simple facets with Mongo.",
   name: "hive:facets",
-  version: "0.1.1"
+  version: "0.1.2"
 });
 
 Npm.depends({'json-stable-stringify': '1.0.0'});
