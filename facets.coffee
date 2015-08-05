@@ -56,12 +56,8 @@ if Meteor.isServer
         if _.isArray configuration[field]
           a = { $project: {} }
           # Null values are replaced with an array containing 'null' for unwind.
-          a.$project["#{field}"] = { $ifNull: [ "$#{field}", [null] ] }
-          pipeline.push a
-          # And the same with empty arrays.
           a.$project["#{field}"] = { $cond: [ { $eq: [ "$#{field}", [] ] }, [null], "$#{field}"] }
           pipeline.push a
-          console.log collection.aggregate(pipeline)
           pipeline.push {$unwind: "$#{field}"}
         pipeline.push {$group: {_id: "$#{field}", count: {$sum: 1}}}
         facets[field.replace(/\./g, '-')] = _.map collection.aggregate(pipeline), (s) ->
