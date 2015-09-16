@@ -40,6 +40,16 @@ if Meteor.isServer
   #    tags: []
   #    status: String
   #
+
+  publishHandle = null
+  _publish = Meteor.publish
+  Meteor.publish = (name, cb) ->
+    _cb = cb
+    cb = ->
+      publishHandle = @
+      _cb.apply @, arguments
+    _publish.apply @, arguments
+
   Facets.configure = (collection, configuration) ->
     check collection, Mongo.Collection
 
@@ -84,13 +94,13 @@ if Meteor.isServer
           console.log "forcing facet regeneration for #{collection._name} #{facetString} because doc #{doc._id} changed"
           Facets.remove {collection: collection._name, facetString: facetString}
 
-      cursor.observe
+      observeHandle = cursor.observe
         added: refresh
         changed: (n, o) -> refresh _.union n, o
         removed: refresh
 
       facetCursor = Facets.find({collection: collection._name, facetString: facetString})
-      facetCursor.observe
+      facetObserveHandle = facetCursor.observe
         removed: (doc) ->
           console.log "regenerating facets for #{collection._name}, #{facetString}"
           Facets.upsert {collection: collection._name, facetString: facetString},
@@ -98,6 +108,9 @@ if Meteor.isServer
               facets: collection.computeFacets selector
       ready = true
 
+      publishHandle.onStop ->
+        observeHandle.stop()
+        facetObserveHandle.stop()
 
       return [cursor, facetCursor]
 
