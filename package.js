@@ -13,7 +13,7 @@ Package.onUse(function(api, where) {
     'coffeescript',
     'mongo',
     'check',
-    'meteorhacks:aggregate@1.2.1'],
+    'sakulstra:aggregate'],
     ['client', 'server']);
   api.addFiles('facets.coffee', ['client', 'server']);
   api.export(['Facets'], ['client', 'server']);
