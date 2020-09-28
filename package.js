@@ -13,7 +13,7 @@ Package.onUse(function(api, where) {
     'coffeescript',
     'mongo',
     'check',
-    'sakulstra:aggregate'],
+    'sakulstra:aggregate@1.4.0'],
     ['client', 'server']);
   api.addFiles('facets.coffee', ['client', 'server']);
   api.export(['Facets'], ['client', 'server']);
