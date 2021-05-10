@@ -20,6 +20,12 @@ Facets = new Mongo.Collection 'facets'
 if Meteor.isServer
   #Meteor.startup ->
   #  if Npm.require('cluster').isMaster
+  #    Facets._ensureIndex
+  #      collection: 1
+  #      facetString: 1
+
+  #Meteor.startup ->
+  #  if Npm.require('cluster').isMaster
   #    ready = false
   #    refreshFacetQueues = (queues) ->
   #      if ready
@@ -70,7 +76,10 @@ if Meteor.isServer
           pipeline.push a
           pipeline.push {$unwind: "$#{field}"}
         pipeline.push {$group: {_id: "$#{field}", count: {$sum: 1}}}
-        facets[field.replace(/\./g, '-')] = _.map collection.aggregate(pipeline), (s) ->
+        agg = collection.rawCollection().aggregate pipeline
+        if MongoInternals.NpmModules.mongodb.version[0] == "3"
+          agg = Promise.await agg.toArray()
+        facets[field.replace(/\./g, '-')] = _.map agg, (s) ->
           {name: s._id, count: s.count}
       return facets
 
